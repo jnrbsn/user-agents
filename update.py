@@ -54,7 +54,7 @@ def get_latest_user_agents():
 
 
 def json_dump(obj):
-    return json.dumps(obj, indent=4)
+    return json.dumps(obj, indent=4).strip() + '\n'
 
 
 def update_files_on_github(new_user_agents_json):
