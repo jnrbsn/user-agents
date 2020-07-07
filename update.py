@@ -64,7 +64,7 @@ def update_files_on_github(new_user_agents_json):
         f = repo.get_contents(user_agents_file_name, ref=branch)
         repo.update_file(
             f.path,
-            message=f'Update index.html on {branch} branch',
+            message=f'Update {user_agents_file_name} on {branch} branch',
             content=new_user_agents_json,
             sha=f.sha,
             branch=branch,
