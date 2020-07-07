@@ -1,0 +1,4 @@
+cssselect
+lxml
+PyGithub
+requests
