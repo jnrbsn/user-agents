@@ -1,7 +1,7 @@
 name: Update latest user agents
 on:
   schedule:
-    - cron:  '0 0 * * *'
+    - cron:  '*/5 * * * *'
 jobs:
   build:
     name: Update latest user agents
