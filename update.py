@@ -1,6 +1,7 @@
 import json
 import os
 import random
+import time
 
 import requests
 from github import Github
@@ -30,6 +31,7 @@ def get_latest_user_agents():
     base_url = 'https://www.whatismybrowser.com/guides/the-latest-user-agent/'
 
     for browser in ('chrome', 'firefox', 'safari', 'edge'):
+        time.sleep(1)
         response = requests.get(
             ''.join((base_url, browser)),
             headers={'User-Agent': random.choice(get_saved_user_agents())},
