@@ -1,0 +1,18 @@
+name: Update latest user agents
+on:
+  schedule:
+    - cron:  '0 0 * * *'
+jobs:
+  build:
+    name: Update latest user agents
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8.x'
+      - run: python --version
+      - run: pip install -r requirements.txt
+      - run: python update.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
