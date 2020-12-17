@@ -1,17 +1,23 @@
 import json
 import os
 import random
+import re
 import time
+from itertools import product
 
 import requests
 from github import Github
 from lxml import html
 
-
 user_agents_file_name = 'user-agents.json'
 user_agents_file_path = os.path.join(
     os.path.dirname(__file__), user_agents_file_name)
 
+_os_field_patterns = [
+    re.compile(r'^windows nt \d+\.\d+$', flags=re.IGNORECASE),
+    re.compile(r'^macintosh$', flags=re.IGNORECASE),
+    re.compile(r'^linux (x86_64|i686)$', flags=re.IGNORECASE),
+]
 
 _saved_user_agents = None
 
@@ -42,13 +48,16 @@ def get_latest_user_agents():
         browser_uas = []
         for elem in elems:
             ua = elem.text_content().strip()
-            if not ua.startswith('Mozilla/5.0 '):
+            if not ua.startswith('Mozilla/5.0 ('):
                 continue
             browser_uas.append(ua)
 
-        for opsys in ('Win64', 'Macintosh', 'Linux x86_64'):
-            for ua in browser_uas:
-                if opsys in ua:
+        for ua in browser_uas:
+            os_type = ua[len('Mozilla/5.0 ('):ua.find(')')].lower()
+            os_fields = [p.strip() for p in os_type.split(';')]
+
+            for field, pattern in product(os_fields, _os_field_patterns):
+                if pattern.match(field):
                     user_agents.append(ua)
                     break
 
