@@ -13,10 +13,18 @@ user_agents_file_name = 'user-agents.json'
 user_agents_file_path = os.path.join(
     os.path.dirname(__file__), user_agents_file_name)
 
-_os_field_patterns = [
+_os_field_include_patterns = [
     re.compile(r'^windows nt \d+\.\d+$', flags=re.IGNORECASE),
     re.compile(r'^macintosh$', flags=re.IGNORECASE),
     re.compile(r'^linux (x86_64|i686)$', flags=re.IGNORECASE),
+]
+_os_field_exclude_patterns = [
+    re.compile(r'\bwindows mobile\b', flags=re.IGNORECASE),
+    re.compile(r'\bxbox\b', flags=re.IGNORECASE),
+    re.compile(r'\biphone\b', flags=re.IGNORECASE),
+    re.compile(r'\bipad\b', flags=re.IGNORECASE),
+    re.compile(r'\bipod\b', flags=re.IGNORECASE),
+    re.compile(r'\bandroid\b', flags=re.IGNORECASE),
 ]
 
 _saved_user_agents = None
@@ -56,10 +64,13 @@ def get_latest_user_agents():
             os_type = ua[len('Mozilla/5.0 ('):ua.find(')')].lower()
             os_fields = [p.strip() for p in os_type.split(';')]
 
-            for field, pattern in product(os_fields, _os_field_patterns):
-                if pattern.match(field):
-                    user_agents.append(ua)
-                    break
+            if any(p.match(f) for p, f in product(
+                    _os_field_exclude_patterns, os_fields)):
+                continue
+
+            if any(p.match(f) for p, f in product(
+                    _os_field_include_patterns, os_fields)):
+                user_agents.append(ua)
 
     return user_agents
 
