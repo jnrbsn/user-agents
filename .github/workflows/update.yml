@@ -1,5 +1,8 @@
 name: Update latest user agents
 on:
+  push:
+    branches:
+      - main
   schedule:
     - cron:  '0 0 * * *'
 jobs:
