@@ -1,17 +1,17 @@
+#!/bin/python3
+
 import json
 import os
-import random
 import re
 import time
 from itertools import product
 
 import requests
-from github import Github
 from lxml import html
 
+web_directory = 'web'
 user_agents_file_name = 'user-agents.json'
-user_agents_file_path = os.path.join(
-    os.path.dirname(__file__), user_agents_file_name)
+user_agents_file_path = os.path.join(web_directory, user_agents_file_name)
 
 _os_field_include_patterns = [
     re.compile(r'^windows nt \d+\.\d+$', flags=re.IGNORECASE),
@@ -27,18 +27,6 @@ _os_field_exclude_patterns = [
     re.compile(r'\bandroid\b', flags=re.IGNORECASE),
 ]
 
-_saved_user_agents = None
-
-
-def get_saved_user_agents():
-    global _saved_user_agents
-
-    if _saved_user_agents is None:
-        with open(user_agents_file_path, 'r') as f:
-            _saved_user_agents = json.load(f)
-
-    return _saved_user_agents
-
 
 def get_latest_user_agents():
     user_agents = []
@@ -48,7 +36,6 @@ def get_latest_user_agents():
         time.sleep(1)
         response = requests.get(
             ''.join((base_url, browser)),
-            headers={'User-Agent': random.choice(get_saved_user_agents())},
         )
 
         elems = html.fromstring(response.text).cssselect('td li span.code')
@@ -79,23 +66,7 @@ def json_dump(obj):
     return json.dumps(obj, indent=4).strip() + '\n'
 
 
-def update_files_on_github(new_user_agents_json):
-    gh = Github(os.environ['GITHUB_TOKEN'])
-    repo = gh.get_repo(os.environ['GITHUB_REPOSITORY'])
-    for branch in ('main', 'gh-pages'):
-        f = repo.get_contents(user_agents_file_name, ref=branch)
-        repo.update_file(
-            f.path,
-            message=f'Update {user_agents_file_name} on {branch} branch',
-            content=new_user_agents_json,
-            sha=f.sha,
-            branch=branch,
-        )
-
-
 if __name__ == '__main__':
-    old_user_agents_json = json_dump(get_saved_user_agents())
-    new_user_agents_json = json_dump(get_latest_user_agents())
-
-    if old_user_agents_json != new_user_agents_json:
-        update_files_on_github(new_user_agents_json)
+    ua = get_latest_user_agents()
+    with open(user_agents_file_path, 'w') as f:
+        f.writelines(json_dump(ua))
