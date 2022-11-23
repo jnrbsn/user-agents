@@ -13,11 +13,13 @@ web_directory = 'web'
 user_agents_file_name = 'user-agents.json'
 user_agents_file_path = os.path.join(web_directory, user_agents_file_name)
 
-_os_field_include_patterns = [
-    re.compile(r'^windows nt \d+\.\d+$', flags=re.IGNORECASE),
-    re.compile(r'^macintosh$', flags=re.IGNORECASE),
-    re.compile(r'^linux (x86_64|i686)$', flags=re.IGNORECASE),
-]
+BROWSERS = ('chrome', 'firefox', 'safari', 'edge')
+_OS_PATTERNS = {
+    'win':   re.compile(r'^windows nt \d+\.\d+$', flags=re.IGNORECASE),
+    'mac':   re.compile(r'^macintosh$', flags=re.IGNORECASE),
+    'linux': re.compile(r'^linux (x86_64|i686)$', flags=re.IGNORECASE),
+}
+
 _os_field_exclude_patterns = [
     re.compile(r'\bwindows mobile\b', flags=re.IGNORECASE),
     re.compile(r'\bxbox\b', flags=re.IGNORECASE),
@@ -29,10 +31,14 @@ _os_field_exclude_patterns = [
 
 
 def get_latest_user_agents():
-    user_agents = []
+    user_agents = {}
     base_url = 'https://www.whatismybrowser.com/guides/the-latest-user-agent/'
 
-    for browser in ('chrome', 'firefox', 'safari', 'edge'):
+    for browser in BROWSERS:
+        user_agents[browser] ={}
+        for os_name in _OS_PATTERNS.keys():
+            user_agents[browser][os_name] = []
+
         time.sleep(1)
         response = requests.get(
             ''.join((base_url, browser)),
@@ -55,9 +61,9 @@ def get_latest_user_agents():
                     _os_field_exclude_patterns, os_fields)):
                 continue
 
-            if any(p.match(f) for p, f in product(
-                    _os_field_include_patterns, os_fields)):
-                user_agents.append(ua)
+            for os_name, os_pattern in _OS_PATTERNS.items():
+                if any([os_pattern.match(f) for f in os_fields]):
+                    user_agents[browser][os_name].append(ua)
 
     return user_agents
 
