@@ -50,6 +50,7 @@ def get_latest_user_agents():
             ''.join((base_url, browser)),
             headers={'User-Agent': random.choice(get_saved_user_agents())},
         )
+        response.raise_for_status()
 
         elems = html.fromstring(response.text).cssselect('td li span.code')
 
