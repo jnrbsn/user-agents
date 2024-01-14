@@ -3,7 +3,7 @@ from itertools import product
 from github import Github
 from lxml import html
 
-user_agents_file_name = 'user_agents.json'
+user_agents_file_name = 'user-agents.json'
 user_agents_file_path = os.path.join(
     os.path.dirname(__file__), user_agents_file_name)
 
