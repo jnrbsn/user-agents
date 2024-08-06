@@ -3,11 +3,13 @@ import os
 import random
 import re
 import time
-from itertools import product
+from datetime import datetime, timedelta, timezone
+from itertools import count, product
 
 import requests
 from github import Github
 from lxml import html
+
 
 user_agents_file_name = 'user-agents.json'
 user_agents_file_path = os.path.join(
@@ -30,6 +32,79 @@ _os_field_exclude_patterns = [
 _saved_user_agents = None
 
 
+class wayback_machine:
+
+    @classmethod
+    def timestamped_url(cls, timestamp, url):
+        return f'https://web.archive.org/web/{timestamp}/{url}'
+
+    @classmethod
+    def save_url(cls, url):
+        response = requests.post(
+            f'https://web.archive.org/save/{url}',
+            data={'url': url, 'capture_all': 'on'},
+        )
+        response.raise_for_status()
+        response_data = response.text
+
+        match = re.search(r'\bspn\.watchJob\(\s*"([^"]+)"', response_data)
+        job_id = match.group(1)
+
+        for n in count(start=1):
+            time.sleep(1)  # throttle
+
+            response = requests.get(
+                f'https://web.archive.org/save/status/{job_id}',
+                params={'_t': time.time_ns() // 1_000_000},
+            )
+            response.raise_for_status()
+            response_data = response.json()
+
+            if response_data['status'] == 'success':
+                return cls.timestamped_url(response_data['timestamp'], url)
+
+            if n >= 30:
+                raise RuntimeError(f'Timed out waiting for save URL: {url}')
+
+    @classmethod
+    def get_latest_timestamp(cls, url):
+        try:
+            response = requests.get(
+                'https://archive.org/wayback/available',
+                params={'url': url},
+            )
+            response.raise_for_status()
+            response_data = response.json()
+            return response_data['archived_snapshots']['closest']['timestamp']
+        except (requests.HTTPError, KeyError):
+            response = requests.get(
+                'https://web.archive.org/cdx/search/cdx',
+                params={
+                    'url': url,
+                    'output': 'json',
+                    'limit': '-1',
+                    'fastLatest': 'true',
+                    'fl': 'timestamp',
+                },
+            )
+            response.raise_for_status()
+            response_data = response.json()
+            return response_data[1][0]
+
+    @classmethod
+    def get_auto_updated_url(cls, url, max_age_days=7):
+        timestamp = cls.get_latest_timestamp(url)
+
+        ts_dt = datetime.strptime(
+            timestamp, '%Y%m%d%H%M%S').replace(tzinfo=timezone.utc)
+        utc_now = datetime.now(tz=timezone.utc)
+
+        if utc_now - ts_dt >= timedelta(days=max_age_days):
+            return cls.save_url(url)
+
+        return cls.timestamped_url(timestamp, url)
+
+
 def get_saved_user_agents():
     global _saved_user_agents
 
@@ -47,7 +122,7 @@ def get_latest_user_agents():
     for browser in ('chrome', 'firefox', 'safari', 'edge'):
         time.sleep(1)
         response = requests.get(
-            ''.join((base_url, browser)),
+            wayback_machine.get_auto_updated_url(base_url + browser),
             headers={'User-Agent': random.choice(get_saved_user_agents())},
         )
         if response.status_code >= 400:
