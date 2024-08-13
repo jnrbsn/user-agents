@@ -46,26 +46,6 @@ class wayback_machine:
             data={'url': url, 'capture_all': 'on'},
         )
         response.raise_for_status()
-        response_data = response.text
-
-        match = re.search(r'\bspn\.watchJob\(\s*"([^"]+)"', response_data)
-        job_id = match.group(1)
-
-        for n in count(start=1):
-            time.sleep(1)  # throttle
-
-            response = requests.get(
-                f'https://web.archive.org/save/status/{job_id}',
-                params={'_t': time.time_ns() // 1_000_000},
-            )
-            response.raise_for_status()
-            response_data = response.json()
-
-            if response_data['status'] == 'success':
-                return cls.timestamped_url(response_data['timestamp'], url)
-
-            if n >= 30:
-                raise RuntimeError(f'Timed out waiting for save URL: {url}')
 
     @classmethod
     def get_latest_timestamp(cls, url):
@@ -100,9 +80,27 @@ class wayback_machine:
         ts_dt = datetime.strptime(
             timestamp, '%Y%m%d%H%M%S').replace(tzinfo=timezone.utc)
         utc_now = datetime.now(tz=timezone.utc)
+        age_days = (utc_now - ts_dt).days
 
-        if utc_now - ts_dt >= timedelta(days=max_age_days):
-            return cls.save_url(url)
+        if age_days >= max_age_days:
+            cls.save_url(url)
+            for _ in range(6):
+                time.sleep(10)
+                new_timestamp = cls.get_latest_timestamp(url)
+                if new_timestamp > timestamp:
+                    print(
+                        f'Updated timestamp for URL from {timestamp} to '
+                        f'{new_timestamp}: {url}')
+                    timestamp = new_timestamp
+                    break
+            else:
+                if age_days >= max_age_days * 2:
+                    raise RuntimeError(
+                        f'Timestamp for URL is {age_days} days old: {url}')
+                else:
+                    print(
+                        'WARNING: Took longer than 60 seconds to save URL; '
+                        'skipping for now')
 
         return cls.timestamped_url(timestamp, url)
 
