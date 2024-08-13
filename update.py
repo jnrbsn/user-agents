@@ -150,7 +150,7 @@ def get_latest_user_agents():
                     _os_field_include_patterns, os_fields)):
                 user_agents.append(ua)
 
-    return user_agents
+    return sorted(set(user_agents))
 
 
 def json_dump(obj):
