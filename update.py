@@ -40,6 +40,7 @@ class wayback_machine:
 
     @classmethod
     def save_url(cls, url):
+        print(f'Saving URL on web.archive.org: {url}')
         response = requests.post(
             f'https://web.archive.org/save/{url}',
             data={'url': url, 'capture_all': 'on'},
@@ -68,6 +69,7 @@ class wayback_machine:
 
     @classmethod
     def get_latest_timestamp(cls, url):
+        print(f'Getting latest archived snapshot for URL: {url}')
         try:
             response = requests.get(
                 'https://archive.org/wayback/available',
@@ -121,8 +123,10 @@ def get_latest_user_agents():
 
     for browser in ('chrome', 'firefox', 'safari', 'edge'):
         time.sleep(1)
+        url = wayback_machine.get_auto_updated_url(base_url + browser)
+        print(f'Getting user agents for {browser}')
         response = requests.get(
-            wayback_machine.get_auto_updated_url(base_url + browser),
+            url,
             headers={'User-Agent': random.choice(get_saved_user_agents())},
         )
         if response.status_code >= 400:
@@ -158,6 +162,7 @@ def json_dump(obj):
 
 
 def update_files_on_github(new_user_agents_json):
+    print('Updating files on GitHub')
     gh = Github(os.environ['GITHUB_TOKEN'])
     repo = gh.get_repo(os.environ['GITHUB_REPOSITORY'])
     for branch in ('main', 'gh-pages'):
