@@ -23,11 +23,11 @@ def json_dump(obj):
 def with_cli_status(msg):
     def decorator(func):
         @wraps(func)
-        def wrapper():
+        def wrapper(*args, **kwargs):
             sys.stdout.write(f'{msg}... ')
             sys.stdout.flush()
             try:
-                result = func()
+                result = func(*args, **kwargs)
             except Exception:
                 sys.stdout.write('FAILED\n\n')
                 sys.stdout.flush()
