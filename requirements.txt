@@ -1,4 +1,2 @@
-cssselect
-lxml
 PyGithub
 requests
