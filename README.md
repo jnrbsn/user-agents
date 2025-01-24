@@ -14,10 +14,10 @@ website blocked GitHub Actions. So then I thought I had a clever idea of using
 [The Internet Archive][2] and also making it take regular snapshots. But then,
 because of legal problems, The Internet Archive was temporarily shutdown for a
 month last year. Regardless of the shutdown, the GitHub Action just fails
-sometimes for various reasons. Also, as I was researching the rewrite of this,
-I learned that some of the user agent strings on whatismybrowser.com are
-incorrect. They're obviously generating their strings using outdated rules.
-Anyway, this whole thing has become fragile and complex, and I don't like it.
+sometimes for various reasons. It has become fragile and complex, and I don't
+like it. I also learned, as I was researching the rewrite of this, that some of
+the user agent strings on whatismybrowser.com are not even valid/correct.
+They're obviously generating their strings using outdated rules.
 
 Meanwhile, in the years since I created this repo, the state of the browser
 user agent string has changed in significant ways. Driven by frustration with
