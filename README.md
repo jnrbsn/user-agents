@@ -8,14 +8,16 @@ Latest user agent strings for major browsers and OSs; checks for updates daily:
 
 **TL;DR:** I made it better, more correct, and more reliable! :tada:
 
-When I created this repo ~4.5 years ago, it originally screen-scraped the user
-agent strings from [whatismybrowser.com][1]. Around two years ago, that website
-blocked GitHub Actions. So then I thought I had a clever idea of using
+When I created this repo around 4.5 years ago, it originally screen-scraped the
+user agent strings from [whatismybrowser.com][1]. Around two years ago, that
+website blocked GitHub Actions. So then I thought I had a clever idea of using
 [The Internet Archive][2] and also making it take regular snapshots. But then,
-because legal problems, The Internet Archive was temporarily shutdown for a
+because of legal problems, The Internet Archive was temporarily shutdown for a
 month last year. Regardless of the shutdown, the GitHub Action just fails
-sometimes for various reasons. It has become fragile and complex, and I don't
-like it.
+sometimes for various reasons. Also, as I was researching the rewrite of this,
+I learned that some of the user agent strings on whatismybrowser.com are
+incorrect. They're obviously generating their strings using outdated rules.
+Anyway, this whole thing has become fragile and complex, and I don't like it.
 
 Meanwhile, in the years since I created this repo, the state of the browser
 user agent string has changed in significant ways. Driven by frustration with
