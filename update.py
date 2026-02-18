@@ -178,10 +178,18 @@ def generate_edge_user_agents():
 
 def get_latest_user_agents():
     user_agents = []
-    user_agents.extend(generate_chrome_user_agents())
-    user_agents.extend(generate_firefox_user_agents())
-    user_agents.extend(generate_safari_user_agents())
-    user_agents.extend(generate_edge_user_agents())
+    fns = [
+        ("Chrome", generate_chrome_user_agents),
+        ("Firefox", generate_firefox_user_agents),
+        ("Safari", generate_safari_user_agents),
+        ("Edge", generate_edge_user_agents),
+    ]
+    for browser, fn in fns:
+        try:
+            user_agents.extend(fn())
+        except Exception as exc:
+            message = f"ERROR: {browser} failed with {exc}"
+            print(message)
     return user_agents
 
 
